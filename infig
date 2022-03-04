@@ -1,0 +1,56 @@
+cd ~/kafka_2.13-2.8.0
+
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+bin/kafka-server-start.sh config/server.properties
+
+// 토픽 생성
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic nct
+
+// 토픽 생성 확인
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+// 특정 토픽에 대해 자세한 내용 보기
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic twitterdata
+
+// kafka -> mongo
+./bin/connect-standalone.sh ./config/connect-standalone.properties ./config/MongoSinkConnector.properties
+
+// 토픽, 몽고 디비 document, sink 설정해주는 프로퍼티 파일 수정
+vim config/MongoSinkConnector.properties
+
+/Users/seoyeong/kafka_2.13-2.8.0/config 
+
+
+## 안에 머라고 궁시렁 궁시렁
+bin/kafka-console-producer.sh --broker-list localhost:2181 --topic nct
+## 안에 머라 적었는지 확인
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic nct --from-beginning
+## topic 제거하기
+bin/kafka-topics.sh --delete --zookeeper localhost --topic x
+## 없어졌는지 확인
+bin/kafka-topics.sh --list --zookeeper localhost
+
+
+
+# topic 및 partition 생성
+./kafka/bin/kafka-topics.sh --zookeeper localhost:2181/localhost --replication-factor 1 --partitions 1 --topic tp1 --create
+
+# topic 에 데이터 넣는 방법
+./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic twitterdata
+
+# 이후 나오는 프롬프트에 데이터를 넣으면 된다.
+
+# topic 에 README.md 파일을 넣는 방법
+./kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic tp1 < README.md
+# topic 내의 메세지 삭제 방법
+# 삭제 주기를 1초 등으로 줄여서 삭제하고, 다시 늘리면 됨.
+./kafka/bin/kafka-topics.sh --zookeeper localhost:2181/localhost --alter --topic tp1 --config retention.ms=1000
+
+# 혹은 토픽 자체를 삭제한 후 다시 생성
+# server.properties 에 delete.topic.enable=true 추가
+./kafka/bin/kafka-topics.sh --zookeeper localhost:2181/localhost --delete --topic tp1
+
+# topic 에 대한 정보 보기(topic leader follower check)
+
+./kafka/bin/kafka-topics.sh --describe --zookeeper localhost:2181/localhost --topic tp1

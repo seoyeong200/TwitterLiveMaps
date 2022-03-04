@@ -1,0 +1,68 @@
+cd /usr/local/Cellar/apache-spark/3.1.2
+./bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 SparkStreaming.py localhost:9092 subscribe twitterdata
+
+./bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 --jars gs://spark-lib/bigquery/spark-bigquery-latest.jar SparkStreaming_rawdata.py localhost:9092 subscribe twitterdata
+spark-submit --jars gs://spark-lib/bigquery/spark-bigquery-latest.jar my_job.py
+
+/Users/seoyeong/google-cloud-sdk/bin/gcloud dataproc jobs submit pyspark --cluster "$MY_CLUSTER" \
+  --jars gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar \
+  /usr/local/Cellar/apache-spark/3.1.2/SparkStreaming.py
+
+
+# ./bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 --jars gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar SparkStreaming.py localhost:9092 subscribe twitterdata
+# --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar
+# --jars gs://spark-lib/bigquery/spark-bigquery-latest.jar
+# /usr/local/Cellar/apache-spark/3.1.2/libexec/jars/spark-bigquery-with-dependencies_2.11-0.21.1.jar 
+
+
+'''
+"devices": {
+  "cameras": {
+    "device_id": "awJo6rH...",
+    "last_event": {
+      "has_sound": true,
+      "has_motion": true,
+      "has_person": true,
+      "start_time": "2016-12-29T00:00:00.000Z",
+      "end_time": "2016-12-29T18:42:00.000Z"
+    }
+  }
+}
+'''
+
+## Read Nest Device Logs From Kafka
+
+# Expected Schema for JSON data
+schema = StructType() \
+  .add("metadata", StructType() \
+    .add("access_token", StringType()) \
+    .add("client_version", IntegerType())) \
+
+  .add("devices", StructType() \
+    .add("thermostats", MapType(StringType(), StructType().add(...))) \
+    .add("smoke_co_alarms", MapType(StringType(), StructType().add(...))) \
+    .add("cameras", MapType(StringType(), StructType().add(...))) \
+    .add("companyName", StructType().add(...))) \
+
+  .add("structures", MapType(StringType(), StructType().add(...)))
+
+nestTimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.sss'Z'"
+
+# Parse the Raw JSON
+jsonOptions = { "timestampFormat": nestTimestampFormat }
+parsed = spark \
+  .readStream \
+  .format("kafka") \
+  .option("kafka.bootstrap.servers", "localhost:9092") \
+  .option("subscribe", "nest-logs") \
+  .load() \
+  .select(from_json(col("value").cast("string"), schema, jsonOptions).alias("parsed_value"))
+
+# Project Relevant Columns
+camera = parsed \
+  .select(explode("parsed_value.devices.cameras")) \
+  .select("value.*")
+
+sightings = camera \
+  .select("device_id", "last_event.has_person", "last_event.start_time") \
+  .where(col("has_person") == True)
