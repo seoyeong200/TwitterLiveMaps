@@ -226,4 +226,5 @@ cython_debug/
 
 # envolve credential info files
 credentials.py
-
+__pycache__
+.vscode
