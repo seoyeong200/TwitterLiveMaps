@@ -86,10 +86,12 @@ class StdOutListener(StreamListener):
 
         if result_json['status'] is not 'ERR':
             client = get_kafka_client()
-            topic = client.topics['twitter_RAIN']
+            topic = client.topics['rain']
             producer = topic.get_sync_producer() # RUN THE PRODUCER
-            producer.produce(data.encode('ascii')) #프로듀서가 실행되면 만들수있음. 카프카는 바이트 데이터로만 됨
             print(result_json)
+            result_encode = json.dumps(result_json).encode('utf-8')
+            producer.produce(result_encode) #프로듀서가 실행되면 만들수있음. 카프카는 바이트 데이터로만 됨
+            
             #sys.exit(0)
             return True
 
@@ -101,5 +103,5 @@ if __name__ == "__main__":
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     listener = StdOutListener()
     stream = Stream(auth, listener)
-    stream.filter(track=['#태풍','#장마','#홍수'])
+    stream.filter(track=['장마','홍수', '범람', '침수'])
     #stream.filter(locations=[-180,-90,180,90])

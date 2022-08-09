@@ -225,6 +225,6 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python
 
 # envolve credential info files
-credentials.py
+# kafka/credentials.py
 __pycache__
 .vscode

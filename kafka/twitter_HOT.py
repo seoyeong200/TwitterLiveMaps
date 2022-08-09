@@ -10,7 +10,7 @@ import numpy as np
 
 #내 로컬 IP에 클라이언트 만들기
 def get_kafka_client():
-    return KafkaClient(hosts='localhost:9092')
+    return KafkaClient(hosts='localhost:9093')
 
 
 class StdOutListener(StreamListener):
