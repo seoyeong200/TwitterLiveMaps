@@ -17,7 +17,7 @@ services:
         expose:
             - "9093"
         environment: 
-            KAFKA_ADVERTISED_HOST_NAME: localhost
+            # KAFKA_ADVERTISED_HOST_NAME: localhost
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
             # listener 목록, kafka가 수신 대기를 위해 바인딩하는 host//ip:port (기본값 0.0.0.0-모든 인터페이스에서 수신 대기)
             KAFKA_LISTENERS: INSIDE://0.0.0.0:9093, OUTSIDE://0.0.0.0:9092
@@ -29,16 +29,17 @@ services:
             # 사용할 listener 지정 (여기에 지정된 host//ip 는 브로커 시스템에서 다른 사람이 엑세스할 수 있어야함)
             KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
             # topic_name:#_of_partition:#_of_replicas
-            KAFKA_CREATE_TOPICS: "rain:1:1, hot:1:1, subway:1:1"
+            KAFKA_CREATE_TOPICS: "rain:1:1, hot:1:1, subway:1:1, test:1:1"
             KAFKA_HEAP_OPTS: "-Xmx400m -Xms400m"
         volumes: 
             - /var/run/docker.sock:/var/run/docker.sock
+            - ./kafka-logs:/kafka/kafka-logs-a01817271ca0
     
     notebook:
         container_name: notebook
         user: root
         privileged: true
-        image: jupyter/pyspark-notebook
+        image: sykim98/spark_notebook_kafka:1.0
         restart: always
         volumes:
             - ./notebook:/home/jovyan/work
@@ -48,6 +49,37 @@ services:
             - "4040:4040"
             - "4041:4041"
             - "8888:8888"
+            # env_file:.env 해서 .env 파일에 아래 내용을 넣어줘도 된다.
+            # yml 파일이 위치한 디렉토리에 mysql 라는 이름으로 빈 디렉터리 생성
+    mysql: 
+        container_name: mysql
+        image: mysql:8.0.12
+        restart: always
+        # 방법 1
+        environment: 
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: database
+            MYSQL_USER: tiger
+            MYSQL_PASSWORD: foo
+        # 방법 2
+        # env_file:
+        #     my_env_file.env
+        command: --default-authentication-plugin=mysql_native_password
+        #expose: # 호스트 내부의 다른 컨테이너들만 엑세스 가능한 포트
+        #  - "3306" #for service mysql-proxy
+        ports: # 여기 설정한 호스트 포트번호로 호스트 외부의 다른 호스트들도 엑세스 가능
+            - "3306:3306" #for external connection
+        volumes:
+            - ./mysql-data:/var/lib/mysql #/var/lib/mysql: db 데이터가 파일 형태로 저장되는 공간
+            - ./mysql/conf.d:/etc/mysql/conf.d # encoding 설정
+        networks:
+            #- spark-network
+            - default
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            interval: 3s
+            timeout: 1s
+            retries: 3
 
     
 networks:

@@ -86,7 +86,7 @@ class StdOutListener(StreamListener):
 
         if result_json['status'] is not 'ERR':
             client = get_kafka_client()
-            topic = client.topics['rain']
+            topic = client.topics['test']
             producer = topic.get_sync_producer() # RUN THE PRODUCER
             print(result_json)
             result_encode = json.dumps(result_json).encode('utf-8')
@@ -103,5 +103,6 @@ if __name__ == "__main__":
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     listener = StdOutListener()
     stream = Stream(auth, listener)
-    stream.filter(track=['장마','홍수', '범람', '침수'])
+    # stream.filter(track=['장마','홍수', '범람', '침수'])
+    stream.filter(track=['bts'])
     #stream.filter(locations=[-180,-90,180,90])
