@@ -86,7 +86,7 @@ class StdOutListener(StreamListener):
 
         if result_json['status'] is not 'ERR':
             client = get_kafka_client()
-            topic = client.topics['test']
+            topic = client.topics['movies']
             producer = topic.get_sync_producer() # RUN THE PRODUCER
             print(result_json)
             result_encode = json.dumps(result_json).encode('utf-8')

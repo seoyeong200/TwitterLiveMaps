@@ -228,3 +228,4 @@ cython_debug/
 kafka/credentials.py
 __pycache__
 .vscode
+test/
