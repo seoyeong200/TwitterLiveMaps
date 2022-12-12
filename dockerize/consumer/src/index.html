@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>socket.io - chart.js</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="text/javascript" src="script2.js"></script>
+</head>
+<body>
+  <h1>Test</h1>
+  <canvas id="chart" width="400" height="150"></canvas>
+  <script type="text/javascript "src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+  <script type="text/javascript">
+    var socket = io.connect()
+    var ctx = document.getElementById('chart').getContext('2d')
+    var data = {
+      labels: [0],
+      datasets: [{
+        data: [0],
+        label: 'value',
+        backgroundColor: '#ff6600'
+      }]
+    }
+    var optionsAnimations = { animation: false }
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: optionsAnimations
+    })
+
+    socket.on('event', function (value) {
+      var length = data.labels.length
+      if (length >= 20) {
+        data.datasets[0].data.shift()
+        data.labels.shift()
+      }
+
+      data.labels.push(moment().format('HH:mm:ss'))
+      data.datasets[0].data.push(value)
+
+      chart.update()
+    })
+
+  </script>
+  <main>
+  <section>
+    <h1>
+      Hypertext Accordion
+    </h1>
+    
+    <div class="lx-container-80">
+      <div class="lx-row is-vstart">
+        <div class="lx-column"><div id="women"></div></div>
+        <div class="lx-column"><div id="men"></div></div>
+      </div>
+    </div>
+  </section>
+  </main>
+</body>
+</html>

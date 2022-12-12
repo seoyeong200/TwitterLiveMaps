@@ -2,6 +2,16 @@
 require("dotenv").config();
 const express = require("express"); // for building rest apis 
 const cors = require("cors"); // provides Express middleware to enable CORS with various options
+var WebSocketServer = require('websocket').server;
+var http = require('http');
+const { Kafka } = require('kafkajs')
+
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['kafka:9092', 'kafka2:9092'],
+})
+const consumer = kafka.consumer({ groupId: 'test-group' })
+
 
 const app = express();
 
@@ -19,67 +29,77 @@ app.use(express.urlencoded({ extended: true }));
 
 // configure mongodb DB & mongoose
     // 2. connect() after index.js
-const db = require("./app/models");
+// const db = require("./app/models");
 
-console.log(db.url);
+// console.log(db.url);
 
-db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Connected to the database!");
-  })
-  .catch(err => {
-    console.log("Cannot connect to the database!", err);
-    process.exit();
+// db.mongoose
+//   .connect(db.url, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true
+//   })
+//   .then(() => {
+//     console.log("Connected to the database!");
+//   })
+//   .catch(err => {
+//     console.log("Cannot connect to the database!", err);
+//     process.exit();
+//   });
+
+
+
+// require("./app/routes/turorial.routes")(app);
+
+
+var server = http.createServer(function(request, response) {
+  console.log(' Request recieved : ' + request.url);
+  response.writeHead(404);
+  response.end();
+ });
+ server.listen(8081, function() {
+  console.log('Listening on port : 8081');
+ });
+  
+ webSocketServer = new WebSocketServer({
+  httpServer: server,
+  autoAcceptConnections: false
+ });
+  
+ function iSOriginAllowed(origin) {
+  return true;
+ }
+  
+ webSocketServer.on('request', function(request) {
+  if (!iSOriginAllowed(request.origin)) {
+  request.reject();
+  console.log(' Connection from : ' + request.origin + ' rejected.');
+  return;
+  }
+  
+  var connection = request.accept('echo-protocol', request.origin);
+  console.log(' Connection accepted : ' + request.origin);
+  connection.on('message', function(message) {
+  if (message.type === 'utf8') {
+  console.log('Received Message: ' + message.utf8Data);
+  }
   });
-
-// simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
-});
-
-require("./app/routes/turorial.routes")(app);
-
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var kafka = require('kafka-node');
-var HighLevelConsumer = kafka.HighLevelConsumer;
-var Offset = kafka.Offset;
-var Client = kafka.Client;
-var topic = 'order-one-min-data';
-var client = new Client('localhost:2181', "worker-" + Math.floor(Math.random() * 10000));
-var payloads = [{ topic: topic }];
-var consumer = new HighLevelConsumer(client, payloads);
-var offset = new Offset(client);
-var port = 3001;
-
-app.get('/test/', function(req, res) {
-    res.sendFile('index.html');
-});
-
-io = io.on('connection', function(socket){
-    console.log('a user connected');
-    socket.on('disconnect', function(){
-        console.log('user disconnected');
-    });
-});
-
-consumer = consumer.on('message', function(message) {
-    console.log(message.value);
-    io.emit("message", message.value);
-});
-
-http.listen(port, function(){
-    console.log("Running on port " + port)
-});
+  consumer.connect()
+  consumer.subscribe({ topic: 'movie', fromBeginning: true })
+  consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      console.log({
+        value: message.value.toString(),
+      })
+    },
+  })
+  connection.on('close', function(reasonCode, description) {
+  console.log('Connection ' + connection.remoteAddress + ' disconnected.');
+  });
+ });
 
 // set port, listen for requests
 // 위에 dotenv 임포트한거 사용해서 port setting에 process.env 사용
-const PORT = process.env.NODE_DOCKER_PORT || 8080;
+const PORT = process.env.NODE_DOCKER_PORT || 8081;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });

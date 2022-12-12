@@ -1,0 +1,19 @@
+{
+    "name": "kafka-nodejs-example-consumer",
+    "version": "1.0.0",
+    "description": "A kafka consumer that inserts data into PostgreSQL.",
+    "private": true,
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "avsc": "5.3.1",
+        "chart.js": "^4.0.1",
+        "express": "^4.17.1",
+        "kafka-node": "^5.0.0",
+        "moment": "^2.29.4",
+        "pg": "7.4.3",
+        "socket.io": "^4.5.4",
+        "uuid": "3.3.2"
+    }
+}

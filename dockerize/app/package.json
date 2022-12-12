@@ -6,21 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "nodejs",
-    "express",
-    "rest",
-    "api",
-    "mongodb"
-  ],
-  "author": "bezkoder",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "mongoose": "^5.8.10",
-    "kafka-node":"^0.4.0",
-    "socket.io":"^1.4.8"
+    "websocket":"^1.0.32",
+    "kafkajs":"^2.2.3"
   }
 }
